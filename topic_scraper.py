@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[12]:
+# In[ ]:
 
 
 # pip install playwright beautifulsoup4 tldextract
@@ -41,6 +41,7 @@ for i in links:
 
 while len(toscan) > 0:
     c = toscan.pop()
+    print("working", c)
     url = urllib.parse.urljoin("https://unsplash.com", c)
     html= requests.get(url).text
     links_on_page = extract_links(html)
