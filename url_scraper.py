@@ -8,7 +8,7 @@ from curl_cffi import requests
 import random
 import time
 import os
-
+from concurrent.futures import ThreadPoolExecutor
 
 def get_urls(query, pages):
     # Realistic headers (copy from a real browser as closely as possible)
@@ -27,7 +27,7 @@ def get_urls(query, pages):
         "sec-fetch-mode": "cors",            
         "sec-fetch-site": "same-origin",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
-        "Referer": "https://unsplash.com/s/photos/wallpaper",
+        "Referer": "https://unsplash.com",
     }
 
     urls = set()
@@ -60,28 +60,53 @@ dirname = "unsplash_urls"
 
 os.makedirs(dirname, exist_ok=True)
 
+def work(topic, target_path):
+    print("working", topic, target_path)
+    try:
+        urls = get_urls(topic, 20)
+    except Exception as e:
+        print("ERROR:", e)
+        return
 
-for i in lines:
-    topic = i.split("/")[-1]
-    target_path = os.path.join(dirname, topic)
-
-    if os.path.exists(target_path):
-        print("skip", topic)
-        continue
-
-    print("working", topic)
-    urls = get_urls(topic, 20)
     if urls is None:
         print("ERROR, urls is None")
-        continue
+        return
 
     print("urls:", len(urls))
-    with open(target_path, "w") as f:
-        for url in urls:
-            f.write(url+"\n")
+    try:
+        with open(target_path, "w") as f:
+            for url in urls:
+                f.write(url+"\n")
+    except Exception as e:
+        print("ERROR:", e)
+        try:
+            os.remove(target_path)
+        except Exception as e:
+            print(e)
+
     print("ok")
     print("")
-    time.sleep(5)
+
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    for i in lines:
+        topic = i.split("/")[-1]
+        target_path = os.path.join(dirname, topic)
+
+        if os.path.exists(target_path):
+            print("skip", topic)
+            continue
+
+        executor.submit(work, topic, target_path)
+        time.sleep(4)
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
