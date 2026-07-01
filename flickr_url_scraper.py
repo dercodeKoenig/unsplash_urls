@@ -18,7 +18,7 @@ def search_flickr_images(query, images, page):
     # Define the parameters for the API call
     params = {
         "method": "flickr.photos.search",
-        "api_key": "c0364d61462f97492ca9999af163cbd8",
+        "api_key": "7a7fca6415a7e9515e2d5a809ee4b4d6",
         "text": query,
         "sort": "relevance",
         "per_page": images,
@@ -64,18 +64,27 @@ with open("unspl_links.txt", "r") as f:
 # In[ ]:
 
 
-for topic in unsplash_topics:
-    target_path = os.path.join(dirname, topic.replace(" ", "-"))
-    if os.path.exists(target_path):
-        print("skip", target_path)
-        continue
+from concurrent.futures import ThreadPoolExecutor
+import time
+
+def work(topic, target_path):
     results = search_flickr_images(topic, 100, 1)
     print(topic, len(results))
     if len(results) > 0:
         with open(target_path, "w") as f:
             for url in results:
                 f.write(url+"\n")
-                print(url)
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    for topic in unsplash_topics:
+        target_path = os.path.join(dirname, topic.replace(" ", "-"))
+        if os.path.exists(target_path):
+            print("skip", target_path)
+            continue
+
+        executor.submit(work, topic, target_path)
+        time.sleep(0.5)
+
 
 
 # In[ ]:
