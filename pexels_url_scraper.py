@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 from curl_cffi import requests
@@ -84,7 +84,7 @@ with ThreadPoolExecutor(max_workers=10) as executor:
             continue
         working_topics.add(topic)
         executor.submit(work, topic, target_path)
-        time.sleep(5)
+        time.sleep(10)
 
 
 
